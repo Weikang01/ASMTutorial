@@ -1,19 +1,21 @@
 .data
-byte1 db 7
-byte2 db 8
+myQWordVar sqword 0
 
 .code
-SomeFunction proc
-	mov rax, 89
-	mov cx, ax
-
-	mov byte1, cl
-	mov al, byte1
-	mov byte2, 19
-
-	lea rax, byte2
-	mov byte ptr [rax], 7
+AddSubTestFunction proc
+	xor rcx, rcx
+	mov rax, 2147483648
+	add rcx, rax
+	mov myQWordVar, rcx
+	mov rax, 4
+	inc rax
+	mov al, 255
+	inc al
+	mov al, 255
+	add al, 1
+	mov al, 0
+	dec al
 
 	ret
-SomeFunction endp
+AddSubTestFunction endp
 end

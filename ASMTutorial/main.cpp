@@ -35,8 +35,9 @@ Segment Registers Are Used By The Operating System For Various Incidental Things
 ** Flags Register
 * 16 bits : Flags
 Stores The Stats Of Comparisons And Other Instructions So We Can Act On That Stat.
-
-***32 bit 80386**************************************************
+*/
+/*
+...32 bit 80386...................................................
 
 32 bit 80386
 For Backwards Compatibility, All Of The 8086's Original 16 Bit Registers Were Maintained. But Most Registers Also Got A 32 Bit Version; 32 Bit Versions Have The Same Names As The Original But They Begin With "E".
@@ -58,7 +59,9 @@ The IP And Flags Register Also Got 32 Bit Versions, But The Segment Registers Re
 ** Segment Registers
 * 16 bits : CS DS ES SS FS GS
 
-***Pentium !V And x64********************************************
+*/
+/*
+...Pentium !V And x64.............................................
 
 Pentium !V And x64
 ** General Purpose:
@@ -92,7 +95,9 @@ Tips : There's something to be aware of when using 32 bit registers in 64 bit mo
 	* Using instructions with 32 bit registers Zeros the top of the 64 bit registers! That's only 32 bit operations, 8 bit and 16 bit do not.
 This happens with the old regs like EAX, EDX etc. and the ones too! As far as I can tell, there's no good reason other than Intel/AMD decided that's what would happen!
 
-***Fundamental Data Types****************************************
+*/
+/*
+...Fundamental Data Types.........................................
 Fundamental Data Types
 There's only a handful of fundamental data types. Most Assemblers allow us to construct our own data types from these using struct, but the CPU itself only really knows a few integer data types and a few floating point.
 In this vid, we'll look at the x64 data types, and at the end we'll define some variables using them.
@@ -153,7 +158,9 @@ AVX512 Pckd 512bit|SIMD |512 |64   |???        |???        |
 ____________________________________________________________
 Note : There are more. e.g. mmword is identical to qword, except you cannot define any initial data when defining. It's meant for the MMX SIMD instruction set. All of these terms are Assembler specific, the above table shows the syntax for Microsoft's MASM.
 
-***MOV and LEA****************************************************
+*/
+/*
+...MOV and LEA....................................................
 MOV and LEA, two related instruction
 
 * Move : MOV
@@ -168,26 +175,73 @@ The LEA instruction loads an address. If you have some variable, you can load th
 				LEA dst, src
 Note : LEA is actually an arithmetic instruction, it computes an SIB address.
 
+*/
+/*
+...ADD, SUB INC and DEC...........................................
+ADD, SUB INC and DEC
+
+Addition and Subtraction
+There are some interesting things about many instructions of the instructions in x86, and these are no exception. On the surface, they Add, Subtract, Increment and Decrement, but under the hood, they're weird little monsters, just like most of the x86 instructions, and they do some pretty strange things!
+
+* ADD
+				ADD reg/mem, reg/mem/imm
+The add instruction adds the source to the destination and stores in the destination. It is used for both signed and unsigned arithmetic, depending on how the flags are read.
+The Overflow flag indicates a signed carry. The Carry flag indicates unsigned carry.
+Flags : Overflow, Carry, Sign, Zero, Auxiliary Carry, Parity
+LOCK is supported
+
+* Tricks and Traps
+Using the original registers, EAX, CX, BL etc. generates more efficient machine code than using the new ones, R8B, R12W etc. New registers, and 64 bit instructions add a REX prefix in machine code.
+Use "ADD reg, 0" to update the flags according to reg without changing it, similar to "AND reg, reg" and "OR reg, reg". These are slightly different to "CMP reg, reg" since CMP sets the flags as "SUB reg, reg".
+Use "ADD reg, 1" if you need to "INC reg" which affects the carry flag.
+ADD is faster than the multiplication instructions, so to double a reg, you can use for example "ADD ax, ax". It is more common to use shifts for this purpose.
+
+Sign Extension
+ADD sign extends an immediate operand when the operands are not of the same size. This only matters when the destination is 64 bits, but there is no "ADD reg64, imm64"!
+When the destination is 64 bits, the immediate is always read as 32 bits. It will be sign extended, so if the 32st bit is a 1, you'll get a negative result!
+				ADD RCX, 2147483648; add rcx, ffffffff8000000h
+If you need to add a 64 bit immediate to a reg or mem, you have to use an intermediate MOV instruction:
+MOV rax, 2147483648
+ADD rcx, rax
+
+* SUB
+				SUB reg/mem, reg/mem/imm
+SUB subtracts the second operand from the first, and stores the result in the first.
+The Overflow flag indicates a signed borrow. The Carry flag indicates unsigned borrow.
+Flags : Overflow, Carry, Sign, Xero, Auxiliary Carry, Parity
+LOCK is supported
+
+* Tricks
+64 bit SUB is similar to ADD in the way it sign extends a 32 bit immediate. If you need to subtract a 64 bit immediate, you have to use a MOV first!
+A quick way to Zero is "SUB reg, reg". "XOR reg, reg" is more common for this purpose.
+Use "SUB x, 1" to achieve a "DEC x" which affects the carry flag.
+You can use ADD and SUB to perform a swap, similar to XOR swap, but XCHG instruction is faster and easier to read.
+
+* INC
+The INC instruction, short for Increment, adds 1 to the destination.
+				INC reg/mem
+Flags: Does not affect Carry! Overflow, Sign, Xero, Auxiliary and Parity
+LOCK is supported
+
+* INC and Carry Flag
+The INC and DEC instructions does not change the carry flag. I believe this has to do with the "LOOP" instruction. So if you need to check the carry flag after an INC, you should use "ADD x, 1" instead.
+Most of the time, "INC reg" is the same speed as "ADD reg, 1", but for 32 and 64 bit regs, "INC" is smaller (3 bytes vs 4), and in rare occasions where you need a loop's body fit into some specific number of bytes, INC might be the best choice.
+
+* DEC
+The DEC, short for Decrement, instruction subtracts 1 from the destination.
+				DEC reg/mem
+The DEC instruction does not change the carry flag! same as INC, Use "SUB x, 1" to affect the carry.
+Flags: Overflow, Sign, Xero, Auxiliary and Parity
 
 
-
-
-
-
-
-
-
-
-
-
-******************************************************************
+..................................................................
 */
 
 #include <iostream>
 
-extern "C" int SomeFunction();
+extern "C" int AddSubTestFunction();
 
 int main()
 {
-	std::cout << SomeFunction() << std::endl;
+	AddSubTestFunction();
 }
