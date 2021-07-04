@@ -19,10 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="main.asm" />
+    <MASM Include="asm.asm" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dummy.cpp" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

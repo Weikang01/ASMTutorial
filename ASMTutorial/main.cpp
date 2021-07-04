@@ -153,15 +153,41 @@ AVX512 Pckd 512bit|SIMD |512 |64   |???        |???        |
 ____________________________________________________________
 Note : There are more. e.g. mmword is identical to qword, except you cannot define any initial data when defining. It's meant for the MMX SIMD instruction set. All of these terms are Assembler specific, the above table shows the syntax for Microsoft's MASM.
 
+***MOV and LEA****************************************************
+MOV and LEA, two related instruction
+
+* Move : MOV
+The most fundamental movement instruction is MOV. It takes two operands of the same size, and moves the data (copies it) from the source operand to the destination.
+				MOV dest, src
+Mote : MOV does not change the Flags register. If both operands are the same register, it acts as a NOP :
+				MOV AL, AL or MOV EAX, EAX = 2 byte NOP
+				MOV AX, AX or MOV RAX, RAX = 3 byte NOP
+
+* Load Effective Address : LEA
+The LEA instruction loads an address. If you have some variable, you can load the address of it into a register and manipulate the data indirectly with the register as a pointer. LEA does not change any flags.
+				LEA dst, src
+Note : LEA is actually an arithmetic instruction, it computes an SIB address.
+
+
+
+
+
+
+
+
+
+
+
+
+
+******************************************************************
 */
 
 #include <iostream>
-#define pause system("pause")
 
 extern "C" int SomeFunction();
 
-void main()
+int main()
 {
 	std::cout << SomeFunction() << std::endl;
-	pause;
 }
