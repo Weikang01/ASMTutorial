@@ -37,9 +37,8 @@ Segment Registers Are Used By The Operating System For Various Incidental Things
 Stores The Stats Of Comparisons And Other Instructions So We Can Act On That Stat.
 */
 /*
-...32 bit 80386...................................................
-
 32 bit 80386
+
 For Backwards Compatibility, All Of The 8086's Original 16 Bit Registers Were Maintained. But Most Registers Also Got A 32 Bit Version; 32 Bit Versions Have The Same Names As The Original But They Begin With "E".
 ** General Purpose:
 * 32 bits : EAX   EBX   ECX   EDX
@@ -61,9 +60,8 @@ The IP And Flags Register Also Got 32 Bit Versions, But The Segment Registers Re
 
 */
 /*
-...Pentium !V And x64.............................................
-
 Pentium !V And x64
+
 ** General Purpose:
 * 64 bits : RAX   RBX   RCX   RDX
 * 32 bits : EAX   EBX   ECX   EDX
@@ -97,7 +95,6 @@ This happens with the old regs like EAX, EDX etc. and the ones too! As far as I 
 
 */
 /*
-...Fundamental Data Types.........................................
 Fundamental Data Types
 There's only a handful of fundamental data types. Most Assemblers allow us to construct our own data types from these using struct, but the CPU itself only really knows a few integer data types and a few floating point.
 In this vid, we'll look at the x64 data types, and at the end we'll define some variables using them.
@@ -160,7 +157,6 @@ Note : There are more. e.g. mmword is identical to qword, except you cannot defi
 
 */
 /*
-...MOV and LEA....................................................
 MOV and LEA, two related instruction
 
 * Move : MOV
@@ -177,8 +173,7 @@ Note : LEA is actually an arithmetic instruction, it computes an SIB address.
 
 */
 /*
-...ADD, SUB INC and DEC...........................................
-ADD, SUB INC and DEC
+ADD, SUB INC and dec
 
 Addition and Subtraction
 There are some interesting things about many instructions of the instructions in x86, and these are no exception. On the surface, they Add, Subtract, Increment and Decrement, but under the hood, they're weird little monsters, just like most of the x86 instructions, and they do some pretty strange things!
@@ -239,9 +234,17 @@ Flags: Overflow, Sign, Xero, Auxiliary and Parity
 
 #include <iostream>
 
-extern "C" int AddSubTestFunction();
+void PrintBinary(int i)
+{
+	for (int s = 15; s >= 0; s--)
+		std::cout << ((i >> s) & 1);
+	std::cout << std::endl;
+}
+
+extern "C" int TestFunction();
 
 int main()
 {
-	AddSubTestFunction();
+	PrintBinary(TestFunction());
+	system("pause");
 }

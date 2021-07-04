@@ -2,20 +2,40 @@
 myQWordVar sqword 0
 
 .code
-AddSubTestFunction proc
-	xor rcx, rcx
-	mov rax, 2147483648
-	add rcx, rax
-	mov myQWordVar, rcx
-	mov rax, 4
-	inc rax
-	mov al, 255
-	inc al
-	mov al, 255
-	add al, 1
-	mov al, 0
-	dec al
+; Syntax for instructions :
+; AND DEST, SRC
+; AND mem/reg, mem/reg/imm
+; OR  mem/reg, mem/reg/imm
+; NOT mem/reg
+; XOR mem/reg, mem/reg/imm
+
+; Truth Table:
+; A B  Out
+; 0 0  0
+; 0 1  0
+; 1 0  0
+; 1 1  1
+
+TestFunction proc
+	mov eax, 100011101010b
+	mov ebx, 101000011011b
+	mov ecx, 100010101011b
+	
+	and eax, ecx
+	or  eax, ecx
+
+	; equal
+	xor eax, ebx
+	not eax
+
+	; nor
+	or ebx, ebx
+	not ebx
+
+	; nand
+	and ebx, ebx
+	not ebx
 
 	ret
-AddSubTestFunction endp
+TestFunction endp
 end
