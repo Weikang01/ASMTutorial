@@ -1,9 +1,11 @@
+.data
+myByte db 78
+myFloat real4 89.5
+
 .code
 SomeFunction proc
-	mov rax, -1
-	mov al, 5
-	mov ax, 17
-	mov eax, 1
+	mov al, myByte
+	mov ebx, real4 ptr [myFloat]
 	ret
 SomeFunction endp
 end
