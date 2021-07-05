@@ -1,41 +1,74 @@
 .data
-myQWordVar sqword 0
+lastFlags dq 0    ; 64 bit copy of flags register
 
 .code
-; Syntax for instructions :
-; AND DEST, SRC
-; AND mem/reg, mem/reg/imm
-; OR  mem/reg, mem/reg/imm
-; NOT mem/reg
-; XOR mem/reg, mem/reg/imm
+RestoreFlags proc
+	push qword ptr [lastFlags]
+	popfq
+	ret
+RestoreFlags endp
 
-; Truth Table:
-; A B  Out
-; 0 0  0
-; 0 1  0
-; 1 0  0
-; 1 1  1
+SaveFlags proc
+	pushfq
+	pop qword ptr [lastFlags]
+	ret
+SaveFlags endp
 
-TestFunction proc
-	mov eax, 100011101010b
-	mov ebx, 101000011011b
-	mov ecx, 100010101011b
-	
-	and eax, ecx
-	or  eax, ecx
+; int ShiftTest(unsigned long long *rcx)
+ShiftTest proc
+	mov rdx, qword ptr [rcx]  ; P parameter
+	call RestoreFlags  ; Load the last flags
 
-	; equal
-	xor eax, ebx
-	not eax
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;;
+	;; This is the operation we're testing!
+	;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-	; nor
-	or ebx, ebx
-	not ebx
+	; shl rdx, 1  ; shift left
+	; sal rdx, 1  ; shift arithmatic left
+	; rol rdx, 1  ; rotate left
+	; rcl rdx, 1  ; rotate left throgh the carry flag
+	rcl rdx, 1  ; Perform operation
 
-	; nand
-	and ebx, ebx
-	not ebx
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;;
+	;; End of operation
+	;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+	; Set up to return the result in *rcx, and the carry flag in eax
+	mov qword ptr [rcx], rdx  ; Move result into * rdx, second param
+
+	mov eax, 0      ; Assume there's no carry
+	mov ecx, 1      ; Move 1 into ecx
+	cmovc eax, ecx  ; If the carry flag is set, move this 1 into EAX
+
+	call SaveFlags  ; Save flags
 
 	ret
-TestFunction endp
+ShiftTest endp
+
+; ShiftDoubleTest(unsigned long long *rcx, unsigned long long *rdx)
+ShiftDoubleTest proc
+	push rbx  ; Save RBX
+
+	mov rax, qword ptr [rcx]  ; Move param 1 into RAX
+	mov rbx, qword ptr [rdx]  ; Move param 2 into RBX
+
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;;
+	;; This is the operation we're testing!
+	;;
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+	shld rax, rbx, 12  ; Perform operation
+
+	; Place result in *RCX
+	mov qword ptr [rcx], rax
+
+	pop rbx  ; Restore caller's RBX
+	ret
+ShiftDoubleTest endp
+
 end

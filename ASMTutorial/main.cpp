@@ -152,7 +152,7 @@ MMX Packed 64bit  |SIMD |64  |8    |qword ptr  |dq or qword|
 SSE Packed 128bit |SIMD |128 |16   |xmmword ptr|xmmword    |
 AVX Packed 256bit |SIMD |256 |32   |ymmword ptr|ymmword    |
 AVX512 Pckd 512bit|SIMD |512 |64   |???        |???        |
-____________________________________________________________
+！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
 Note : There are more. e.g. mmword is identical to qword, except you cannot define any initial data when defining. It's meant for the MMX SIMD instruction set. All of these terms are Assembler specific, the above table shows the syntax for Microsoft's MASM.
 
 */
@@ -231,20 +231,100 @@ Flags: Overflow, Sign, Xero, Auxiliary and Parity
 
 ..................................................................
 */
+/*
+Shift, Rotate and Bit Manipulation Instructions
+Exploring x64 shift and rotate instructions
+
+Shift instructions move the bits in the egisters or RAM as throgh they are bit strings, written from left to right with the most significant bit on the left. Rotations are similar to shifts, only the bits re-enter on the opposite side as they leave.
+
+* Instructions:
+SHL/SAL, SHR, SAR, ROR, ROL, RCR, RCL, SHRD, SHLD
+SHL and SAL are the same thing (lead to identital machine code), assemblers allow two mnemonics, but there is only one instruction.
+_________________________
+Instruction |Machine Code|
+SHL EAX, 1  |D1 E0		 |
+SAL EAX, 1  |D1 E0		 |
+！！！！！！！！！！！！！！！！！！！！！！！！！
+
+Second: Speeds
+Execution Speed Tests:
+____________________________________________________________
+Instruction|Type       |Description        |Speed           |
+SHL/SHR/SAR|reg, imm   |Shift              |Fast (316)      |
+SHL/SHR    |reg, CL    |Shift              |Moderate (601)  |
+SHL/SHR/SAR|mem, imm   |Shift              |Slow (1622)     |
+SHL/SHR/SAR|reg, CL    |Shift              |Slow (1500)     |
+           |           |                   |                |
+ROL/ROR    |reg, imm   |Rotate             |Fast (316)      |
+ROL/ROR    |reg, 1     |Rotate             |Moderate (514)  |
+ROL/ROR    |reg, CL    |Rotate             |Moderate (601)  |
+ROL/ROR    |mem, imm   |Rotate             |Slow (1470)     |
+ROL/ROR    |mem, CL    |Rotate             |Slow (1504)     |
+		   |           |                   |                |
+RCR/RCL    |reg, imm   |Rot through Carry  |Moderate (601)  |
+RCR/RCL    |reg, CL    |Rot through Carry  |Moderate (601)  |
+RCR/RCL    |mem, imm   |Rot through Carry  |Slow (1513)     |
+RCR/RCL    |mem, CL    |Rot through Carry  |Very Slow (2404)|
+		   |           |                   |                |
+SHLD/SHRD  |reg,reg,imm|Dbl Precision Shift|Moderate (889)  |
+SHLD/SHRD  |reg,reg,CL |Dbl Precision Shift|Moderate (889)  |
+SHLD/SHRD  |mem,reg,imm|Dbl Precision Shift|Very Slow (2128)|
+！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+*/
+/*
+Alignment:
+.data ; Data will be naturally aligned to 64 byte cache line!
+alignedQWord1 dq 0
+alignedQWord2 dq 0
+alignedQWord3 dq 0
+dontDoThis			db 0
+unalignedQWord		dq 0  ; 1 byte is from the next cache line!
+
+Accessing data that spans multiple cache lines is almost never a good idea! Setting up your data as above will cause the unalignedQWord to span two cache lines (cache lines are 64 byte on most current hardware). This results in two requests from RAM every time we read/write. This means a substantial performace hit! 2644 vs 1500 for SHL, 2700 vs 2100 for SHLD tests. Only instruction where it did not seem to make a lot of difference is RCL/RCR, persumably because the instruction is unaligned read/write is occurring?
+SAR, when used as integer division rounds towards -Infinity. So -25/2 gives
+
+
+
+
+*/
 
 #include <iostream>
 
-void PrintBinary(int i)
+extern "C" int ShiftTest(unsigned long long& p);
+extern "C" void ShiftDoubleTest(unsigned long long& p1, unsigned long long& p2);
+
+void PrintBits(int carry, unsigned long long p, int bitCount)
 {
-	for (int s = 15; s >= 0; s--)
-		std::cout << ((i >> s) & 1);
+	std::cout << "C: " << carry << " ";
+	for (int j = bitCount - 1; j >= 0; j--)
+	{
+		std::cout << ((p >> j) & 1);
+	}
 	std::cout << std::endl;
 }
 
-extern "C" int TestFunction();
-
 int main()
 {
-	PrintBinary(TestFunction());
+	unsigned long long p1 = 12341;
+	unsigned long long p2 = 0b1010001000111000100001000000000100001001010000011000100010010100;
+
+	int carry = 0;
+
+	PrintBits(carry, p1, 64);
+	PrintBits(carry, p2, 64);
+
+	std::cin.get();
+
+	while (true)
+	{
+		//carry = ShiftTest(p1);
+		ShiftDoubleTest(p1, p2);
+
+		PrintBits(carry, p1, 64);
+		PrintBits(carry, p2, 64);
+
+		std::cin.get();
+	}
+
 	system("pause");
 }
