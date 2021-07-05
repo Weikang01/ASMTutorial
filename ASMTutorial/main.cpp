@@ -358,7 +358,35 @@ unalignedQWord		dq 0  ; 1 byte is from the next cache line!
 
 Accessing data that spans multiple cache lines is almost never a good idea! Setting up your data as above will cause the unalignedQWord to span two cache lines (cache lines are 64 byte on most current hardware). This results in two requests from RAM every time we read/write. This means a substantial performace hit! 2644 vs 1500 for SHL, 2700 vs 2100 for SHLD tests. Only instruction where it did not seem to make a lot of difference is RCL/RCR, persumably because the instruction is unaligned read/write is occurring?
 SAR, when used as integer division rounds towards -Infinity. So -25/2 gives
+*/
+/*
+* Conditional Jumps
+Jcc rel8/16/32
+If the condition "cc" is true, then the IP will jump to the position specified by the relative offset. Otherwise, IP will fall through to next instruction.
+In practice, we supply a label, and the Assembler converts it to the RIP relative address
 
+* Conditional Moves
+CMOVcc reg, reg/mem
+If "cc" is true, the value of the second operand is moved into the first. Otherwise, the first is unchanged.
+There are no 8 bit versions of these instructions.
+The 32 bit versions will Zero the upper32
+the 64 bit destination regardless of the condition
+
+* Set Byte
+SETcc reg/mem8
+If "cc" is true, the value 1 is moved into the operand. Otherwise, the value 0 is moved.
+Only 8 bit operands are allowed.
+
+cc Condition Codes
+_____________________________________________________________
+JO: Overflow                     |JS: Sign					 |
+JNO: Not Overflow                |JNS: NOT Sign				 |
+JB/JC/JNAE: Carry Unsigned       |JP/JPE: Parity Even		 |
+JE/JZ: Zero                      |JL/JNGE: Less Signed		 |
+JNE/JNZ: Not Zero                |JNL/JGE: Not Less Signed	 |
+JBE/JNA: Below or Equal Unsigned |JLE/JNG: Not Greater Signed|
+JNBE/JA: Above Unsignd           |JNLE/JG: Greater SIgned	 |
+(We can use CMOV, or SET in place of the "J" when using Conditional moves and set byte. The "J" is for Jump.)
 
 
 
@@ -366,7 +394,7 @@ SAR, when used as integer division rounds towards -Infinity. So -25/2 gives
 
 #include <iostream>
 
-extern "C" int FlagsFunction();
+extern "C" int ConditionalJumps();
 
 void PrintBits(int carry, unsigned long long p, int bitCount)
 {
@@ -380,5 +408,5 @@ void PrintBits(int carry, unsigned long long p, int bitCount)
 
 int main()
 {
-	FlagsFunction();
+	ConditionalJumps();
 }
