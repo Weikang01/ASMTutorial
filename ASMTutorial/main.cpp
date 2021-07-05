@@ -254,7 +254,7 @@ SHL/SHR/SAR|reg, imm   |Shift              |Fast (316)      |
 SHL/SHR    |reg, CL    |Shift              |Moderate (601)  |
 SHL/SHR/SAR|mem, imm   |Shift              |Slow (1622)     |
 SHL/SHR/SAR|reg, CL    |Shift              |Slow (1500)     |
-           |           |                   |                |
+		   |           |                   |                |
 ROL/ROR    |reg, imm   |Rotate             |Fast (316)      |
 ROL/ROR    |reg, 1     |Rotate             |Moderate (514)  |
 ROL/ROR    |reg, CL    |Rotate             |Moderate (601)  |
@@ -270,6 +270,82 @@ SHLD/SHRD  |reg,reg,imm|Dbl Precision Shift|Moderate (889)  |
 SHLD/SHRD  |reg,reg,CL |Dbl Precision Shift|Moderate (889)  |
 SHLD/SHRD  |mem,reg,imm|Dbl Precision Shift|Very Slow (2128)|
 ！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+*/
+/*
+Flags Register
+_______________________________________________
+15|14|13 12|11|10| 9| 8| 7| 6| 5| 4| 3| 2| 1| 0| 
+  |NT|IOPL |OF|DF|IF|TF|SF|ZF|  |AF|  |PF|  |CF|
+Only 0 to 15 are represented here. The rest are reserved and/or system flags.
+
+* 0: CF
+Carry Flag : Represents an unsigned overflow.
+Called CY in visual studio
+
+(Note : -1 always has all the bits to 1! Signed -1 has the same bit pattern as the largest unsigned value :
+111111...11111)
+
+* 2: PF
+Parity Flag :
+PE in visual studio!
+
+1 last result had even parity.
+0 last result had odd parity.
+
+Was for checking integrity of serial data.
+
+Example : You read 8 bits from ASCII file: 00110101
+You know that only the low 7 bits are meant to represent the character.
+0 0110101
+The extra first bit is an error checking bit! It is the Parity!!
+Parity 0 means Odd! There should be an odd number 1's:
+0 0"11"0"1"0"1"
+There are 4. 4 is Even, so the Parity bit is telling us that the data is corrupt!!
+
+* 4: AF
+Auxiliary Carry:
+AC in visual studio
+Overflow or carry of the lowest nibble (lowest 4 bits).
+
+Used for Binary Code Decimal BCD. Not applicable in x64!
+
+* 6: ZF
+Zero Flag!!!
+ZR in visual studio
+Was previous result 0?
+if Yes: ZR = 1
+if No : ZR = 0
+Also means Equals!!
+
+* 7: SF
+Sign Flag
+PL in Visual Studio.
+1 if last result was Negative
+0 if last result was Positive
+
+* 10: DF
+Direction Flag:
+UP in Visual studio.
+0 Reading strings forwards
+1 Reading strings backwards
+
+* 11: OF
+Overflow Flag:
+OV in visual studio
+Represents a Sign over flow.
+Did the Sign change?
+Overflow on the 2nd from left bit!
+
+* 8: TF
+Trap Flag: Allows debuggers to step throgh code
+* 9: IF
+Interrupt Flag: Allows interrupts to be called
+* 12,13: IOPL
+Shows IO port privilege level
+* 14: NT
+Nested Task: Shows if the task is nested
+
+CPUID: If you can toggle bit 21, then the CPU is capable of the CPUID instruction.
 */
 /*
 Alignment:
@@ -290,8 +366,7 @@ SAR, when used as integer division rounds towards -Infinity. So -25/2 gives
 
 #include <iostream>
 
-extern "C" int ShiftTest(unsigned long long& p);
-extern "C" void ShiftDoubleTest(unsigned long long& p1, unsigned long long& p2);
+extern "C" int FlagsFunction();
 
 void PrintBits(int carry, unsigned long long p, int bitCount)
 {
@@ -305,26 +380,5 @@ void PrintBits(int carry, unsigned long long p, int bitCount)
 
 int main()
 {
-	unsigned long long p1 = 12341;
-	unsigned long long p2 = 0b1010001000111000100001000000000100001001010000011000100010010100;
-
-	int carry = 0;
-
-	PrintBits(carry, p1, 64);
-	PrintBits(carry, p2, 64);
-
-	std::cin.get();
-
-	while (true)
-	{
-		//carry = ShiftTest(p1);
-		ShiftDoubleTest(p1, p2);
-
-		PrintBits(carry, p1, 64);
-		PrintBits(carry, p2, 64);
-
-		std::cin.get();
-	}
-
-	system("pause");
+	FlagsFunction();
 }

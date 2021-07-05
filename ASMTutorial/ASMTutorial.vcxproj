@@ -19,7 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="asm.asm" />
+    <MASM Include="flags.asm" />
+    <MASM Include="shift_and_rotate.asm" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

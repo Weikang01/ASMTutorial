@@ -15,7 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="asm.asm">
+    <MASM Include="shift_and_rotate.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+    <MASM Include="flags.asm">
       <Filter>Source Files</Filter>
     </MASM>
   </ItemGroup>
