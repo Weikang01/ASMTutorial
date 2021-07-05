@@ -152,7 +152,7 @@ MMX Packed 64bit  |SIMD |64  |8    |qword ptr  |dq or qword|
 SSE Packed 128bit |SIMD |128 |16   |xmmword ptr|xmmword    |
 AVX Packed 256bit |SIMD |256 |32   |ymmword ptr|ymmword    |
 AVX512 Pckd 512bit|SIMD |512 |64   |???        |???        |
-！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+____________________________________________________________
 Note : There are more. e.g. mmword is identical to qword, except you cannot define any initial data when defining. It's meant for the MMX SIMD instruction set. All of these terms are Assembler specific, the above table shows the syntax for Microsoft's MASM.
 
 */
@@ -242,9 +242,9 @@ SHL/SAL, SHR, SAR, ROR, ROL, RCR, RCL, SHRD, SHLD
 SHL and SAL are the same thing (lead to identital machine code), assemblers allow two mnemonics, but there is only one instruction.
 _________________________
 Instruction |Machine Code|
-SHL EAX, 1  |D1 E0		 |
-SAL EAX, 1  |D1 E0		 |
-！！！！！！！！！！！！！！！！！！！！！！！！！
+SHL EAX, 1  |D1 E0       |
+SAL EAX, 1  |D1 E0       |
+_________________________
 
 Second: Speeds
 Execution Speed Tests:
@@ -254,7 +254,7 @@ SHL/SHR/SAR|reg, imm   |Shift              |Fast (316)      |
 SHL/SHR    |reg, CL    |Shift              |Moderate (601)  |
 SHL/SHR/SAR|mem, imm   |Shift              |Slow (1622)     |
 SHL/SHR/SAR|reg, CL    |Shift              |Slow (1500)     |
-		   |           |                   |                |
+           |           |                   |                |
 ROL/ROR    |reg, imm   |Rotate             |Fast (316)      |
 ROL/ROR    |reg, 1     |Rotate             |Moderate (514)  |
 ROL/ROR    |reg, CL    |Rotate             |Moderate (601)  |
@@ -269,7 +269,7 @@ RCR/RCL    |mem, CL    |Rot through Carry  |Very Slow (2404)|
 SHLD/SHRD  |reg,reg,imm|Dbl Precision Shift|Moderate (889)  |
 SHLD/SHRD  |reg,reg,CL |Dbl Precision Shift|Moderate (889)  |
 SHLD/SHRD  |mem,reg,imm|Dbl Precision Shift|Very Slow (2128)|
-！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+____________________________________________________________
 */
 /*
 Flags Register
@@ -379,22 +379,43 @@ Only 8 bit operands are allowed.
 
 cc Condition Codes
 _____________________________________________________________
-JO: Overflow                     |JS: Sign					 |
-JNO: Not Overflow                |JNS: NOT Sign				 |
-JB/JC/JNAE: Carry Unsigned       |JP/JPE: Parity Even		 |
-JE/JZ: Zero                      |JL/JNGE: Less Signed		 |
-JNE/JNZ: Not Zero                |JNL/JGE: Not Less Signed	 |
+JO: Overflow                     |JS: Sign                   |
+JNO: Not Overflow                |JNS: NOT Sign              |
+JB/JC/JNAE: Carry Unsigned       |JP/JPE: Parity Even        |
+JE/JZ: Zero                      |JL/JNGE: Less Signed       |
+JNE/JNZ: Not Zero                |JNL/JGE: Not Less Signed   |
 JBE/JNA: Below or Equal Unsigned |JLE/JNG: Not Greater Signed|
-JNBE/JA: Above Unsignd           |JNLE/JG: Greater SIgned	 |
+JNBE/JA: Above Unsignd           |JNLE/JG: Greater SIgned    |
 (We can use CMOV, or SET in place of the "J" when using Conditional moves and set byte. The "J" is for Jump.)
 */
 /*
+Parameter Passing
+* Windows "C" Calling Convention
+_________________________________________
+    |Int  |Float/Double|Pointer/Obj/Array|
+1st |RCX  |XMM0		   |RCX				 |
+2nd |RDX  |XMM1		   |RDX				 |
+3rd |R8	  |XMM2		   |R8				 |
+4th |R9	  |XMM3		   |R9				 |
+more|Stack|Stack	   |Stack			 |
+Integer and pointer returns are in RAX.
+Floating point returns are in XMM0
 */
-
+/*
+*/
 #include <iostream>
 
-extern "C" int Divisions();
-extern "C" int GCD_ASM(unsigned long long int a, unsigned long long int b);
+class Boo
+{
+public:
+	int j;
+	Boo()
+	{
+		j = 200;
+	}
+};
+
+extern "C" double CallingConvention(Boo& b);
 
 void PrintBits(int carry, unsigned long long p, int bitCount)
 {
@@ -408,8 +429,7 @@ void PrintBits(int carry, unsigned long long p, int bitCount)
 
 int main()
 {
-	// Divisions();
-
-	std::cout << GCD_ASM(123*439, 829*122) << std::endl;
+	Boo g;
+	double a = CallingConvention(g);
 	system("pause");
 }
