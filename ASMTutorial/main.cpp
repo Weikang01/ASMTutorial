@@ -387,14 +387,14 @@ JNE/JNZ: Not Zero                |JNL/JGE: Not Less Signed	 |
 JBE/JNA: Below or Equal Unsigned |JLE/JNG: Not Greater Signed|
 JNBE/JA: Above Unsignd           |JNLE/JG: Greater SIgned	 |
 (We can use CMOV, or SET in place of the "J" when using Conditional moves and set byte. The "J" is for Jump.)
-
-
-
+*/
+/*
 */
 
 #include <iostream>
 
-extern "C" int ConditionalJumps();
+extern "C" int Divisions();
+extern "C" int GCD_ASM(unsigned long long int a, unsigned long long int b);
 
 void PrintBits(int carry, unsigned long long p, int bitCount)
 {
@@ -408,5 +408,8 @@ void PrintBits(int carry, unsigned long long p, int bitCount)
 
 int main()
 {
-	ConditionalJumps();
+	// Divisions();
+
+	std::cout << GCD_ASM(123*439, 829*122) << std::endl;
+	system("pause");
 }

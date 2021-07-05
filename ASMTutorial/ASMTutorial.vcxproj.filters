@@ -24,6 +24,9 @@
     <MASM Include="conditional_jumps.asm">
       <Filter>Source Files</Filter>
     </MASM>
+    <MASM Include="division.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

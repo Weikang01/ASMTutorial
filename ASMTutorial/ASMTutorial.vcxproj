@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <MASM Include="conditional_jumps.asm" />
+    <MASM Include="division.asm" />
     <MASM Include="flags.asm" />
     <MASM Include="shift_and_rotate.asm" />
   </ItemGroup>
