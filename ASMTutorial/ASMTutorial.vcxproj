@@ -26,7 +26,8 @@
     <MASM Include="flags.asm" />
     <MASM Include="shift_and_rotate.asm" />
     <MASM Include="structures.asm" />
-    <MASM Include="x64\SIMD_test.asm" />
+    <MASM Include="SIMD_test.asm" />
+    <MASM Include="SIMD_arithmetic.asm" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

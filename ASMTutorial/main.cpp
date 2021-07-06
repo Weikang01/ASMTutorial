@@ -649,12 +649,24 @@ double-precision floating point :  8 operations at once
 
 */
 /*
+* SIMD Floating-Point Arithmetic
+- ADD, SUB, MUL, DIV for Floats and Doubles
+
+Recap:
+- SSE Registers has vectors of 128-bits wide, so there are 16 different registers ( in 32-bit mode, there are only 8 SSE registers) from XMM0 to XMM15.
+
+- AVX : Advanced Vector Extension: 256-bits wide, registers are called from YMM0 up to YMM15. It is important to keep in mind that the low 128 bits of the AVX registers is actually the SSE registers.
+
+- CPUID is an instruction which determines the hardware capabilities at runtime. It's usually safer to check the hardware with a CPUID call!
+
+*/
+/*
 */
 
 #include <iostream>
 #include <intrin.h>
 
-extern "C" int TestSIMD();
+extern "C" int SIMDArithmetic();
 
 void PrintBits(int carry, unsigned long long p, int bitCount)
 {
@@ -666,16 +678,218 @@ void PrintBits(int carry, unsigned long long p, int bitCount)
 	std::cout << std::endl;
 }
 
+#ifdef _WIN32
+
+//  Windows
+#define cpuid(info, x)    __cpuidex(info, x, 0)
+
+#else
+
+//  GCC Intrinsics
+#include <cpuid.h>
+void cpuid(int info[4], int InfoType) {
+	__cpuid_count(InfoType, 0, info[0], info[1], info[2], info[3]);
+}
+
+#endif
+
+void CheckCPUSupport()
+{
+	//  Misc.
+	bool HW_MMX        ;
+	bool HW_x64        ;
+	bool HW_ABM        ;      // Advanced Bit Manipulation
+	bool HW_RDRAND     ;
+	bool HW_BMI1       ;
+	bool HW_BMI2       ;
+	bool HW_ADX        ;
+	bool HW_PREFETCHWT1;
+
+	//  SIMD: 128-bit
+	bool HW_SSE  ;
+	bool HW_SSE2 ;
+	bool HW_SSE3 ;
+	bool HW_SSSE3;
+	bool HW_SSE41;
+	bool HW_SSE42;
+	bool HW_SSE4a;
+	bool HW_AES  ;
+	bool HW_SHA  ;
+
+	//  SIMD: 256-bit
+	bool HW_AVX ;
+	bool HW_XOP ;
+	bool HW_FMA3;
+	bool HW_FMA4;
+	bool HW_AVX2;
+
+	//  SIMD: 512-bit
+	bool HW_AVX512F   ;    //  AVX512 Foundation
+	bool HW_AVX512CD  ;   //  AVX512 Conflict Detection
+	bool HW_AVX512PF  ;   //  AVX512 Prefetch
+	bool HW_AVX512ER  ;   //  AVX512 Exponential + Reciprocal
+	bool HW_AVX512VL  ;   //  AVX512 Vector Length Extensions
+	bool HW_AVX512BW  ;   //  AVX512 Byte + Word
+	bool HW_AVX512DQ  ;   //  AVX512 Doubleword + Quadword
+	bool HW_AVX512IFMA; //  AVX512 Integer 52-bit Fused Multiply-Add
+	bool HW_AVX512VBMI; //  AVX512 Vector Byte Manipulation Instructions
+
+	int info[4];
+	cpuid(info, 0);
+	int nIds = info[0];
+
+	cpuid(info, 0x80000000);
+	unsigned nExIds = info[0];
+
+	//  Detect Features
+	if (nIds >= 0x00000001) {
+		cpuid(info, 0x00000001);
+		HW_MMX = (info[3] & ((int)1 << 23)) != 0;
+		HW_SSE = (info[3] & ((int)1 << 25)) != 0;
+		HW_SSE2 = (info[3] & ((int)1 << 26)) != 0;
+		HW_SSE3 = (info[2] & ((int)1 << 0)) != 0;
+
+		HW_SSSE3 = (info[2] & ((int)1 << 9)) != 0;
+		HW_SSE41 = (info[2] & ((int)1 << 19)) != 0;
+		HW_SSE42 = (info[2] & ((int)1 << 20)) != 0;
+		HW_AES = (info[2] & ((int)1 << 25)) != 0;
+
+		HW_AVX = (info[2] & ((int)1 << 28)) != 0;
+		HW_FMA3 = (info[2] & ((int)1 << 12)) != 0;
+
+		HW_RDRAND = (info[2] & ((int)1 << 30)) != 0;
+	}
+	if (nIds >= 0x00000007) {
+		cpuid(info, 0x00000007);
+		HW_AVX2 = (info[1] & ((int)1 << 5)) != 0;
+
+		HW_BMI1 = (info[1] & ((int)1 << 3)) != 0;
+		HW_BMI2 = (info[1] & ((int)1 << 8)) != 0;
+		HW_ADX = (info[1] & ((int)1 << 19)) != 0;
+		HW_SHA = (info[1] & ((int)1 << 29)) != 0;
+		HW_PREFETCHWT1 = (info[2] & ((int)1 << 0)) != 0;
+
+		HW_AVX512F = (info[1] & ((int)1 << 16)) != 0;
+		HW_AVX512CD = (info[1] & ((int)1 << 28)) != 0;
+		HW_AVX512PF = (info[1] & ((int)1 << 26)) != 0;
+		HW_AVX512ER = (info[1] & ((int)1 << 27)) != 0;
+		HW_AVX512VL = (info[1] & ((int)1 << 31)) != 0;
+		HW_AVX512BW = (info[1] & ((int)1 << 30)) != 0;
+		HW_AVX512DQ = (info[1] & ((int)1 << 17)) != 0;
+		HW_AVX512IFMA = (info[1] & ((int)1 << 21)) != 0;
+		HW_AVX512VBMI = (info[2] & ((int)1 << 1)) != 0;
+	}
+	if (nExIds >= 0x80000001) {
+		cpuid(info, 0x80000001);
+		HW_x64 = (info[3] & ((int)1 << 29)) != 0;
+		HW_ABM = (info[2] & ((int)1 << 5)) != 0;
+		HW_SSE4a = (info[2] & ((int)1 << 6)) != 0;
+		HW_FMA4 = (info[2] & ((int)1 << 16)) != 0;
+		HW_XOP = (info[2] & ((int)1 << 11)) != 0;
+	}
+
+#define PrintSupportItem(x) std::cout << #x << ": " << x << std::endl
+	std::cout << "Misc." << std::endl;
+	PrintSupportItem(HW_MMX        );
+	PrintSupportItem(HW_x64        );
+	PrintSupportItem(HW_ABM        );
+	PrintSupportItem(HW_RDRAND     );
+	PrintSupportItem(HW_BMI1       );
+	PrintSupportItem(HW_BMI2       );
+	PrintSupportItem(HW_ADX        );
+	PrintSupportItem(HW_PREFETCHWT1);
+	std::cout << "SIMD: 128-bit" << std::endl;
+	PrintSupportItem(HW_SSE  );
+	PrintSupportItem(HW_SSE2 );
+	PrintSupportItem(HW_SSE3 );
+	PrintSupportItem(HW_SSSE3);
+	PrintSupportItem(HW_SSE41);
+	PrintSupportItem(HW_SSE42);
+	PrintSupportItem(HW_SSE4a);
+	PrintSupportItem(HW_AES  );
+	PrintSupportItem(HW_SHA  );
+	std::cout << "SIMD: 256-bit" << std::endl;
+	PrintSupportItem(HW_AVX );
+	PrintSupportItem(HW_XOP );
+	PrintSupportItem(HW_FMA3);
+	PrintSupportItem(HW_FMA4);
+	PrintSupportItem(HW_AVX2);
+	std::cout << "SIMD: 512-bit" << std::endl;
+	PrintSupportItem(HW_AVX512F   );
+	PrintSupportItem(HW_AVX512CD  );
+	PrintSupportItem(HW_AVX512PF  );
+	PrintSupportItem(HW_AVX512ER  );
+	PrintSupportItem(HW_AVX512VL  );
+	PrintSupportItem(HW_AVX512BW  );
+	PrintSupportItem(HW_AVX512DQ  );
+	PrintSupportItem(HW_AVX512IFMA);
+	PrintSupportItem(HW_AVX512VBMI);
+}
+
 int main()
 {
-	TestSIMD();
+	CheckCPUSupport();
+
+	SIMDArithmetic();
 
 	// using C++ intrunsics to call SIMD operations
+	// Single-precition SSE
 	__m256d a = { 0.0, 1.0, 2.0, 3.0 };
 	__m256d b = { 2.0, 4.0, 6.0, 8.0 };
 	__m256d c;
 
 	c = _mm256_add_pd(a, b);
 
+	__m128 v1 = { 1,2,3,4 }; // Define a vector
+	__m128 v2 = { 5,6,7,8 }; // Define another
+	//__m128 v3 = _mm_add_ps(v1, v2);  // Add them together using ADDPS
+	//__m128 v3 = _mm_sub_ps(v1, v2);  // Sub the first by the second using SUBPS
+	//__m128 v3 = _mm_mul_ps(v1, v2);  // Mult them together using MULPS
+	__m128 v3 = _mm_div_ps(v1, v2);  // Div the first by the second using DIVPS
+	float f[4];
+	// Store the results in an array:
+	_mm_storer_ps(f, v3);  // Unaligned, f need not be aligned
+
+	// Print the results
+	std::cout << "Value: " << f[0] << std::endl;
+	std::cout << "Value: " << f[1] << std::endl;
+	std::cout << "Value: " << f[2] << std::endl;
+	std::cout << "Value: " << f[3] << std::endl;
+
+	// Double-precition SSE
+	__m128d v1d = { 1.0,2.0 }; // double-precision vector, we can store 2 doubles, since each of them is 64 bits
+	__m128d v2d = { 3.0,4.0 };
+	//__m128d v3d = _mm_add_pd(v1d, v2d);
+	//__m128d v3d = _mm_sub_pd(v1d, v2d);
+	//__m128d v3d = _mm_mul_pd(v1d, v2d);
+	__m128d v3d = _mm_div_pd(v1d, v2d);
+
+	// AVX
+	// Single-precition AVX
+	__m256 avx1 = { 1,2,3,4,5,6,7,8 };  // 256 bit of width can store 8 integers
+	__m256 avx2 = { 9,1,2,3,4,5,6,7 };
+	//__m256 avx3 = _mm256_add_ps(avx1, avx2);
+	//__m256 avx3 = _mm256_sub_ps(avx1, avx2);
+	//__m256 avx3 = _mm256_mul_ps(avx1, avx2);
+	__m256 avx3 = _mm256_div_ps(avx1, avx2);
+
+	// Double-precition AVX
+	__m256d avx1d = { 1,2,3,4 };
+	__m256d avx2d = { 9,1,2,3 };
+	//__m256d avx3d = _mm256_add_pd(avx1d, avx2d);
+	//__m256d avx3d = _mm256_sub_pd(avx1d, avx2d);
+	//__m256d avx3d = _mm256_mul_pd(avx1d, avx2d);
+	__m256d avx3d = _mm256_div_pd(avx1d, avx2d);
+
+	// AVX-512
+	// NOTE : If your hardware is not capable of AVX-512, the following code will get an illegal instruction AKA crash.
+	__m512d avx512_1 = { 1,2,3,4,5,6,7,8 };
+	__m512d avx512_2 = { 1,2,3,4,5,6,7,8 };
+	__m512d avx512_3 = _mm512_div_pd(avx512_1, avx512_2);
+
+
 	system("pause");
 }
+
+
+

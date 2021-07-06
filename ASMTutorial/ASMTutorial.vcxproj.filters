@@ -36,7 +36,10 @@
     <MASM Include="structures.asm">
       <Filter>Source Files</Filter>
     </MASM>
-    <MASM Include="x64\SIMD_test.asm">
+    <MASM Include="SIMD_test.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+    <MASM Include="SIMD_arithmetic.asm">
       <Filter>Source Files</Filter>
     </MASM>
   </ItemGroup>
