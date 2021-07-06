@@ -402,10 +402,191 @@ Integer and pointer returns are in RAX.
 Floating point returns are in XMM0
 */
 /*
+ASM Structures
+Many Assemblers include structure functionality to organise code. This part, we'll look at MASM structures and how they can be made to interact with C++ structures.
+
+* Declaration Syntax
+
+<Structure's Name> struct
+	<member variable name> <datatype> <value or ?>
+	<member variable name> <datatype> <value or ?>
+<Structure's Name> ends
+
+Note: Question marks means we don't care what these initialise to!
+example:
+Point struct
+	x dd ?
+	y dd ?
+Point ends
+
+* Define a structure
+<variable name> <Structure's Name> {var1, var2...}
+Note: Triangle braces, <var1, var2...> is the same!
+
+example:
+myPoint Point { 0, 0 }
+or
+myPoint Point < 0, 0 >
+
+* Accessing Members
+example:
+myPoint declared in data segment 
+			mov myPoint.x, 100
+
+If RCX is a pointer to Point
+			mov [rcx].Point.x, 90
+
+* C++ Natural Alignment
+By default many C++ compilers align data so the offsets within the structures are divisible by the data size.
+
+struct MyStruct
+{
+	char c;  // Offset 0
+	int i;   // Offset 4
+	short s; // Offset 8
+	double d;// Offset 16
+};           // Total: 24 bytes!
+_______________________________________________
+c| | | |i|i|i|i|s|s| | | | | | |d|d|d|d|d|d|d|d|
+
+Example: change the order of members to get different size
+	struct MyStruct
+	{
+		char c;  // Offset 0
+		double d;// Offset 8
+		char q;  // Offset 16
+		double v;// Offset 24
+	};           // Total: 32 bytes!
+	
+	struct MyStruct
+	{
+		char c;  // Offset 0
+		char q;  // Offset 1
+		double d;// Offset 8
+		double v;// Offset 16
+	};           // Total: 24 bytes!
+
+* ASM Version
+In ASM we have to add the padding ourselves!
+MyStruct struct
+	c db ?
+		db 3 dup(0)    ; Padding!
+	i dd ?
+	s dw ?
+		db 4 dup(0)    ; Padding!
+	d real8 ?
+MyStruct ends
+
+* #pragma pack the C++
+Using packing, C++ will pack data the same as ASM!
+
+#pragma pack(1)  // align your data to addresses divisable by 1, in other words, any address. It means to pack the data as tight as possible
+struct MyStruct
+{
+	char c;  // Offset 0
+	int i;   // Offset 1
+	short s; // Offset 5
+	double d;// Offset 7
+};           // Total: 15 bytes!
+_____________________________
+c|i|i|i|i|s|s|d|d|d|d|d|d|d|d|
+
+ASM Version of this fully-packed structure
+MyStruct struct
+	c db ?
+	i dd ?
+	s dw ?
+	d real8 ?
+MyStruct ends
+
+* C++ Classes are the same!
+Using packing, C++ will pack data the same as ASM!
+
+class MyClass
+{
+private:  // ASM doesn't care if these are private!
+	char c;
+	int i;
+	short s;
+	double d;
+	void Method();  // Methods do not take up any space!
+};
+
+* More on ASM Structs
+We can supply default values
+Point struct
+	x dd 100  ; Default value
+	y dd 100  ; Default value
+Point ends
+
+point1 Point {}      ; Use defaults
+point2 Point {, 99}  ; x:100, y:99
+point3 Point {0, 0}  ; Override both defaults
+
+
+* Unions
+Unions are also Available! Elements overwrite each other. C++ and ASM packing is the same.
+
+union MyUnion
+{
+	char small;
+	short medium;
+	int large;
+	long long huge;
+};
+
+MyUnion union  ; Use "union" instead of "struc(t)"
+	small db ?
+	medium dw ?
+	large dd ?
+	huge dq ?
+MyUnion ends   ; Note the ENDS!
+
+* Defining and Accessing Unions
+Defining and accessing union members is the same as structures
+
+pp MyUnion { 0ffffffffh }  ; Only the low 8 bits, first member will be set!
+.code
+SomeFunction proc
+	mov pp.medium, 90
+	mov [rcx].MyUnion.large, 3400537897
+SomeFunction endp
+
+* Nested Structures
+You can nest structures too!
+
+Point struct
+	x real4 ?
+	y real4 ?
+Point ends
+
+Line struct
+	startPoint Point {0.0, 0.0}  ; Initialisers for nested
+	finishPoint Point { }
+Line ends
+
+line1 Line { }  ; Use defaults
+line2 Line { \  ; Slashes required for multiple lines!
+	{100.0, 89.0}, \
+	(25.0, 78.0} \
+}
+/*
 */
+
 #include <iostream>
 
-extern "C" int ControlStatements();
+class MyClass
+{
+private:
+	int i;
+public:
+	int GetI()
+	{
+		return i;
+	}
+};
+
+extern "C" int StructureTest(const MyClass& c);
 
 void PrintBits(int carry, unsigned long long p, int bitCount)
 {
@@ -419,12 +600,10 @@ void PrintBits(int carry, unsigned long long p, int bitCount)
 
 int main()
 {
-	ControlStatements();
-
-	for (int i = 0; i < 3; i++)
-	{
-	}
-
+	//std::cout << "Size of: " << sizeof(MyStruct) << std::endl;
+	MyClass m;
+	StructureTest(m);
+	std::cout << m.GetI() << std::endl;
 
 	system("pause");
 }

@@ -25,6 +25,7 @@
     <MASM Include="division.asm" />
     <MASM Include="flags.asm" />
     <MASM Include="shift_and_rotate.asm" />
+    <MASM Include="structures.asm" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
