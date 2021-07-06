@@ -570,23 +570,91 @@ line2 Line { \  ; Slashes required for multiple lines!
 	{100.0, 89.0}, \
 	(25.0, 78.0} \
 }
+*/
+/*
+* Introduction to SIMD
+
+- Flynn's Taxonomy splits computing architecture into four different general types:
+- SISD : Single Instruction Single Data == Regular Scalar Programming.
+- SIMD : Single Instruction Multiple Data : One instruction but it's executed on lots of different data elements at once
+- MISD : Multiple Instruction Single Data, sometime be used for debugging purposes.
+- MIMD : Multiple Instruction Multiple Data. Ex: Modern Multi-core CPU
+
+Scalar Addition: A + B = C
+SIMD Addition:
+A0 + B0 = C0
+A1 + B1 = C1
+A2 + B2 = C2
+A3 + B3 = C3
+
+* SIMD Instruction Sets
+* SSE, AVX, AVX512 and MMX
+
+* x64 Assembly and SIMD
+SSE
+Streaming SIMD Instructions
+SSE came out with whole bunch of generations
+- SSE 1 was designed for single-precision floating point arithmetic
+- SSE 2 was designed for double-precision floating point as well as integer
+- SSE 3 came out in two generations.
+	- 1st gen SSE 3. Offered few horizontal operations
+	- 2nd gen SSE 3. The extension of the previous, added more horizontal operations.
+- SSE 4 contains multiple generations as well.
+	- SSS 4.1, 4.2, 4a. Offered various string operations, blend operations, etc.
+- AVX offers operations on single precision and double precision floats, the vector size was double to 256 bits.
+- AVX 2 added the integer operations to the AVX instruction sets.
+- AVX 512 doubles the size of the vector to 512 bits, and the instructions involved in AVX 512 various.
+- MMX is the first SIMD instruction set that x86 CPUs got, way back with the Pentium MMX in 1997. The instruction set is largely considered obsolete nowadays.
+
+
+* MMX came out back in 1999 with 8 registers: from MM0 to MM7.
+* SSE came out and doubled the register count: from XMM0 to XMM15. This is only in 64-bit mode.
+* AVX has 16 registers: from YMM0 to YMM15
+* AVX12 increased their register count to 32: from ZMM0 to ZMM31. If you are programming for an AVX-512 capable CPU you'll get 32 SSE registers as well.
+All of these registers are aliased to each other so except for MMX these registers are actually aliased to each other. So the low half of the AVX registers is actually the 128-bit SSE registers and likewise the low half of the AVX-512 is the 256 bit AVX registers.
+
+* SIMD Data Types: From Scalar Bytes to 512 bit Vectors
+
+- Start with a recap of the basic data types:
+(8  bits)   byte                           :0xff
+(16 bits)   word                           :0xffff
+(32 bits)   dword                          :0xffffffff
+(64 bits)   qword                          :0xffffffffffffffff
+(32 bits)   single-precision floating point: 0.0f
+(64 bits)   double-precision floating point: 0.0
+
+(128 bits vector) SSE can be split up in lots of different ways.
+                          bytes : 16 operations at once
+                          words :  8 operations at once
+                         dwords :  4 operations at once
+                         qwords :  2 operations at once
+single-precision floating point :  4 operations at once
+double-precision floating point :  2 operations at once
+
+(256 bits vector) AVX
+						  bytes : 32 operations at once
+						  words : 16 operations at once
+						 dwords :  8 operations at once
+						 qwords :  4 operations at once
+single-precision floating point :  8 operations at once
+double-precision floating point :  4 operations at once
+
+(512 bits vector) AVX512
+						  bytes : 64 operations at once
+						  words : 32 operations at once
+						 dwords : 16 operations at once
+						 qwords :  8 operations at once
+single-precision floating point : 16 operations at once
+double-precision floating point :  8 operations at once
+
+*/
 /*
 */
 
 #include <iostream>
+#include <intrin.h>
 
-class MyClass
-{
-private:
-	int i;
-public:
-	int GetI()
-	{
-		return i;
-	}
-};
-
-extern "C" int StructureTest(const MyClass& c);
+extern "C" int TestSIMD();
 
 void PrintBits(int carry, unsigned long long p, int bitCount)
 {
@@ -600,10 +668,14 @@ void PrintBits(int carry, unsigned long long p, int bitCount)
 
 int main()
 {
-	//std::cout << "Size of: " << sizeof(MyStruct) << std::endl;
-	MyClass m;
-	StructureTest(m);
-	std::cout << m.GetI() << std::endl;
+	TestSIMD();
+
+	// using C++ intrunsics to call SIMD operations
+	__m256d a = { 0.0, 1.0, 2.0, 3.0 };
+	__m256d b = { 2.0, 4.0, 6.0, 8.0 };
+	__m256d c;
+
+	c = _mm256_add_pd(a, b);
 
 	system("pause");
 }
