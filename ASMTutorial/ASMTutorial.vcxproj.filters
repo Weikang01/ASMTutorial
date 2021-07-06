@@ -30,6 +30,9 @@
     <MASM Include="calling_convention.asm">
       <Filter>Source Files</Filter>
     </MASM>
+    <MASM Include="control_structures.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

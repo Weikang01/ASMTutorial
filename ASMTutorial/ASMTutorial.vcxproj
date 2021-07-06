@@ -21,6 +21,7 @@
   <ItemGroup>
     <MASM Include="calling_convention.asm" />
     <MASM Include="conditional_jumps.asm" />
+    <MASM Include="control_structures.asm" />
     <MASM Include="division.asm" />
     <MASM Include="flags.asm" />
     <MASM Include="shift_and_rotate.asm" />

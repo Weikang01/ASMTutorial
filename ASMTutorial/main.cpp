@@ -405,17 +405,7 @@ Floating point returns are in XMM0
 */
 #include <iostream>
 
-class Boo
-{
-public:
-	int j;
-	Boo()
-	{
-		j = 200;
-	}
-};
-
-extern "C" double CallingConvention(Boo& b);
+extern "C" int ControlStatements();
 
 void PrintBits(int carry, unsigned long long p, int bitCount)
 {
@@ -429,7 +419,12 @@ void PrintBits(int carry, unsigned long long p, int bitCount)
 
 int main()
 {
-	Boo g;
-	double a = CallingConvention(g);
+	ControlStatements();
+
+	for (int i = 0; i < 3; i++)
+	{
+	}
+
+
 	system("pause");
 }
